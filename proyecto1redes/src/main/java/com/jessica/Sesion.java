@@ -6,6 +6,8 @@ import java.util.Scanner;
 
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.ConnectionConfiguration;
+import org.jivesoftware.smack.MessageListener;
+import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.SmackException.NoResponseException;
 import org.jivesoftware.smack.SmackException.NotConnectedException;
@@ -25,12 +27,18 @@ import org.jivesoftware.smack.roster.RosterListener;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.iqregister.AccountManager;
+// import org.jivesoftware.smackx.muc.DiscussionHistory;
+import org.jivesoftware.smackx.muc.MultiUserChat;
+import org.jivesoftware.smackx.muc.MultiUserChatException;
+import org.jivesoftware.smackx.muc.MultiUserChatManager;
 import org.jxmpp.jid.BareJid;
 import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.Jid;
 import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.jid.parts.Localpart;
+import org.jxmpp.jid.parts.Resourcepart;
 import org.jxmpp.stringprep.XmppStringprepException;
+import org.jxmpp.jid.parts.Resourcepart;
 
 
 public class Sesion {
@@ -277,42 +285,104 @@ public class Sesion {
     }
 
     // Funcion para envio de mensajes
-    public static void envio(AbstractXMPPConnection connection)
-            throws SmackException, IOException, XMPPException, InterruptedException {
-        int opcion = 0;
-        String mensaje = "";
-        org.jivesoftware.smack.chat2.ChatManager chat = org.jivesoftware.smack.chat2.ChatManager
-                .getInstanceFor(connection);
 
-        chat.addIncomingListener(new IncomingChatMessageListener() {
-            @Override
-            public void newIncomingMessage(EntityBareJid from, Message message, Chat chat) {
-                System.out.println("Nuevo mensaje de: " + from + ": " + message.getBody());
-            }
-        });
-
+     // Chat con un contacto
+    public static void chatContacto(AbstractXMPPConnection connection) {
         Scanner sc = new Scanner(System.in);
-        System.out.println("Ingrese el usuario de la persona a la que va dirigida el mensaje");
-        String nombre = sc.nextLine();
-        EntityBareJid jid = JidCreate.entityBareFrom(nombre + "@alumchat.xyz");
+        System.out.println("Ingrese el nombre de usuario del contacto con el que desea chatear (sin el dominio):");
+        String username = sc.nextLine();
 
-        // notificaciones
-        noti(connection);
-        // loop para la conversacion 1 a 1
-        do {
+        ChatManager chatManager = ChatManager.getInstanceFor(connection);
+        BareJid contactJid;
+        try {
+            contactJid = JidCreate.bareFrom(username + "@alumchat.xyz");
+            Chat chat = chatManager.chatWith(contactJid);
+            
+            // Listen for incoming messages
+            chatManager.addIncomingListener((from, message, chat1) -> {
+                System.out.println(from + ": " + message.getBody());
+            });
 
-            Chat chat2 = chat.chatWith(jid);
-
-            System.out.println("Ingrese un mensaje");
-            mensaje = sc.nextLine();
-            chat2.send(mensaje);
-
-            System.out.println("1.Seguir en el chat \n2.Salir del chat");
-            opcion = sc.nextInt();
-            sc.nextLine();
-
-        } while (opcion != 2);
-
+            while (true) {
+                System.out.println("Escriba su mensaje (o 'salir' para finalizar el chat):");
+                String messageText = sc.nextLine();
+                if ("salir".equalsIgnoreCase(messageText)) {
+                    break;
+                }
+                Message message = new Message(contactJid, Message.Type.chat, messageText);
+                chat.send(message);
+            }
+        } catch (XmppStringprepException | SmackException.NotConnectedException | InterruptedException e) {
+            System.out.println("Error al chatear con el contacto.");
+            e.printStackTrace();
+        }
     }
+
+    // Chat con un grupo
+    public static void chatGrupp(AbstractXMPPConnection connection) {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Ingrese el nombre del grupo con el que desea chatear (ejemplo: grupo@conference.alumchat.xyz):");
+        String groupName = sc.nextLine();
+
+        MultiUserChatManager multiUserChatManager = MultiUserChatManager.getInstanceFor(connection);
+        MultiUserChat muc;
+        try {
+            muc = multiUserChatManager.getMultiUserChat(JidCreate.entityBareFrom(groupName));
+            muc.join(Resourcepart.from(connection.getUser().toString()));
+            
+            // Listen for incoming messages from group
+            muc.addMessageListener(new MessageListener() {
+                @Override
+                public void processMessage(Message message) {
+                    System.out.println(message.getFrom() + ": " + message.getBody());
+                }
+            });
+
+            while (true) {
+                System.out.println("Escriba su mensaje (o 'salir' para finalizar el chat de grupo):");
+                String messageText = sc.nextLine();
+                if ("salir".equalsIgnoreCase(messageText)) {
+                    muc.leave();
+                    break;
+                }
+                muc.sendMessage(messageText);
+            }
+        } catch (XmppStringprepException | SmackException.NotConnectedException | InterruptedException | XMPPException.XMPPErrorException | MultiUserChatException.NotAMucServiceException e) {
+            System.out.println("Error al chatear con el grupo.");
+            e.printStackTrace();
+        }
+    }
+
+
+
+
+    // Mostrar detalles de contacto de un usuario
+    public static void DetallesContactos(AbstractXMPPConnection connection) {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Ingrese el nombre de usuario del contacto (sin el dominio):");
+        String username = sc.nextLine();
+        Roster roster = Roster.getInstanceFor(connection);
+        BareJid contactJid;
+        try {
+            contactJid = JidCreate.bareFrom(username + "@alumchat.xyz");
+            RosterEntry entry = roster.getEntry(contactJid);
+            if (entry != null) {
+                System.out.println("Nombre de usuario: " + entry.getJid());
+                System.out.println("Nombre: " + entry.getName());
+                System.out.println("Tipo de suscripción: " + entry.getType());
+                System.out.println("Grupos: " + entry.getGroups());
+                Presence presence = roster.getPresence(contactJid);
+                System.out.println("Estado de presencia: " + presence.getStatus());
+                System.out.println("Modo de presencia: " + presence.getMode());
+            } else {
+                System.out.println("Contacto no encontrado.");
+            }
+        } catch (XmppStringprepException e) {
+            System.out.println("Error al obtener detalles del contacto.");
+            e.printStackTrace();
+        }
+    }
+
+
 
 }

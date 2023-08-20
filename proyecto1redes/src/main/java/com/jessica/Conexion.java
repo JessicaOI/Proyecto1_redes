@@ -62,6 +62,7 @@ public class Conexion {
                             break;
                         case 3:
                             // mostrar detalles de contacto de un usuario
+                            Sesion.DetallesContactos(iniciado);
                             break;
                         case 4:
                             // chat con un contacto
