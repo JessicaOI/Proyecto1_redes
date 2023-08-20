@@ -1,6 +1,7 @@
 package com.jessica;
 
 import org.jivesoftware.smack.*;
+import org.jivesoftware.smack.packet.Presence;
 
 import java.io.IOException;
 
@@ -47,12 +48,40 @@ public class Conexion {
 
                     System.out
                             .println(
-                                    "Que desea hacer ahora?: \n 1.Mostrar todos los contactos\n 2.Agregar un usuario a los contactos\n 3.Mostrar detalles de contacto de un usuario\n 4.Chat con un contacto \n 5.Chat con un grupo\n 6.Definir mensaje de presencia\n 7.Enviar/recibir notificaciones\n 8.Enviar/recibir archivos\n 9.Cerrar sesion\n 10.Borrar Cuenta\n");
+                                    "Que desea hacer ahora?: \n 1.Mostrar todos los contactos\n 2.Agregar un usuario a los contactos\n 3.Mostrar detalles de contacto de un usuario\n 4.Chat con un contacto \n 5.Chat con un grupo\n 6.Definir mensaje de presencia\n 7.Notificaciones\n 8.Archivos\n 9.Cerrar sesion\n 10.Borrar Cuenta\n");
 
                     choice = sc.nextInt();
                     switch (choice) {
                         case 1:
-                            // Llamar funciones de mensajes despues
+                            // mostrar contactos
+                            Sesion.Contactos(iniciado);
+                            break;
+                        case 2:
+                            // agregar usuario a contactos
+                            Sesion.AddContacto(iniciado);
+                            break;
+                        case 3:
+                            // mostrar detalles de contacto de un usuario
+                            break;
+                        case 4:
+                            // chat con un contacto
+                            Sesion.envio(iniciado);
+                            break;
+                        case 5:
+                            // chat con un grupo
+                            break;
+                        case 6:
+                            // mensaje de presencia
+                            Sesion.Presencia(iniciado);
+                            break;                            
+                        case 7:
+                            // notificaciones
+                            break; 
+                        case 8:
+                            // archivos
+                            break;
+                        case 9:// desconectarse
+                            Sesion.Deconeccion(iniciado);
                             break;
                         case 10:
                             // Eliminar cuenta
