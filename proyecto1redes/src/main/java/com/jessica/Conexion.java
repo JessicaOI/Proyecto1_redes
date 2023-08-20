@@ -54,7 +54,11 @@ public class Conexion {
                         case 1:
                             // Llamar funciones de mensajes despues
                             break;
-                            
+                        case 10:
+                            // Eliminar cuenta
+                            Sesion.eliminar();
+                            choice = 9;  // Esto hará que el loop termine y regrese al primer menú
+                            break;
                         default:
                             System.out.println("Ingrese una opcion correcta");
                     }

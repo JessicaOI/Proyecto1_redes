@@ -89,5 +89,36 @@ public class Sesion {
 
     }
 
-    
+     // eliminar cuenta
+     public static void eliminar() {
+
+        System.out.println("Ingrese su usuario para confirmar la eliminacion");
+        Scanner sc = new Scanner(System.in);
+        String user = sc.nextLine();
+
+        System.out.println("Ingrese su contraseña");
+        String pass = sc.nextLine();
+
+        // verifica la cuenta que se eliminara
+        try {
+            XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
+                    .setHost("alumchat.xyz")
+                    .setXmppDomain("alumchat.xyz")
+                    .setPort(5222)
+                    .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
+                    .setUsernameAndPassword(user, pass)
+                    .build();
+            AbstractXMPPConnection connection = new org.jivesoftware.smack.tcp.XMPPTCPConnection(config);
+            connection.connect();
+            connection.login();
+
+            AccountManager accountManager = AccountManager.getInstance(connection); // se conecta y asi sabe que cuenta eliminar
+            accountManager.deleteAccount();
+            System.out.println("Cuenta eliminada\n");
+
+        } catch (Exception e) {
+            System.out.println(e);
+            System.out.println("\n Su cuenta no fue eliminada\n");
+        }
+    }
 }
