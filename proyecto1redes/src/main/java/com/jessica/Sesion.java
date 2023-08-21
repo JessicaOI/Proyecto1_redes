@@ -27,6 +27,7 @@ import org.jivesoftware.smack.roster.RosterListener;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.iqregister.AccountManager;
+import org.jivesoftware.smackx.muc.MucEnterConfiguration;
 // import org.jivesoftware.smackx.muc.DiscussionHistory;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatException;
@@ -38,7 +39,8 @@ import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.jid.parts.Localpart;
 import org.jxmpp.jid.parts.Resourcepart;
 import org.jxmpp.stringprep.XmppStringprepException;
-import org.jxmpp.jid.parts.Resourcepart;
+import org.jivesoftware.smackx.muc.MultiUserChatException.NotAMucServiceException;
+import org.jivesoftware.smackx.muc.MultiUserChatException.MucNotJoinedException;
 
 
 public class Sesion {
@@ -287,70 +289,90 @@ public class Sesion {
     // Funcion para envio de mensajes
 
      // Chat con un contacto
-    public static void chatContacto(AbstractXMPPConnection connection) {
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Ingrese el nombre de usuario del contacto con el que desea chatear (sin el dominio):");
-        String username = sc.nextLine();
+    public static void chatContacto(AbstractXMPPConnection connection)
+            throws SmackException, IOException, XMPPException, InterruptedException {
+        int opcion = 0;
+        String mensaje = "";
+        org.jivesoftware.smack.chat2.ChatManager chat = org.jivesoftware.smack.chat2.ChatManager
+                .getInstanceFor(connection);
 
-        ChatManager chatManager = ChatManager.getInstanceFor(connection);
-        BareJid contactJid;
-        try {
-            contactJid = JidCreate.bareFrom(username + "@alumchat.xyz");
-            Chat chat = chatManager.chatWith(contactJid);
-            
-            // Listen for incoming messages
-            chatManager.addIncomingListener((from, message, chat1) -> {
-                System.out.println(from + ": " + message.getBody());
-            });
-
-            while (true) {
-                System.out.println("Escriba su mensaje (o 'salir' para finalizar el chat):");
-                String messageText = sc.nextLine();
-                if ("salir".equalsIgnoreCase(messageText)) {
-                    break;
-                }
-                Message message = new Message(contactJid, Message.Type.chat, messageText);
-                chat.send(message);
+        chat.addIncomingListener(new IncomingChatMessageListener() {
+            @Override
+            public void newIncomingMessage(EntityBareJid from, Message message, Chat chat) {
+                System.out.println("New message from " + from + ": " + message.getBody());
             }
-        } catch (XmppStringprepException | SmackException.NotConnectedException | InterruptedException e) {
-            System.out.println("Error al chatear con el contacto.");
-            e.printStackTrace();
-        }
+        });
+
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Ingrese el usuario de la persona a la que va dirigida el mensaje");
+        String nombre = sc.nextLine();
+        EntityBareJid jid = JidCreate.entityBareFrom(nombre + "@alumchat.xyz");
+
+        // notificaciones
+        noti(connection);
+        // loop para la conversacion 1 a 1
+        do {
+
+            Chat chat2 = chat.chatWith(jid);
+
+            System.out.println("Ingrese el mensaje:");
+            mensaje = sc.nextLine();
+            chat2.send(mensaje);
+
+            System.out.println("1.Continuar chateando \n2.Salir del chat");
+            opcion = sc.nextInt();
+            sc.nextLine();
+
+        } while (opcion != 2);
+
     }
 
     // Chat con un grupo
-    public static void chatGrupp(AbstractXMPPConnection connection) {
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Ingrese el nombre del grupo con el que desea chatear (ejemplo: grupo@conference.alumchat.xyz):");
-        String groupName = sc.nextLine();
+    public static void chatGrupo(AbstractXMPPConnection connection)
+        throws XmppStringprepException, NotAMucServiceException,
+            XMPPErrorException, NoResponseException, NotConnectedException, InterruptedException,
+            MucNotJoinedException {
 
-        MultiUserChatManager multiUserChatManager = MultiUserChatManager.getInstanceFor(connection);
-        MultiUserChat muc;
-        try {
-            muc = multiUserChatManager.getMultiUserChat(JidCreate.entityBareFrom(groupName));
-            muc.join(Resourcepart.from(connection.getUser().toString()));
-            
-            // Listen for incoming messages from group
-            muc.addMessageListener(new MessageListener() {
-                @Override
-                public void processMessage(Message message) {
+        int opcion = 0;
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Ingrese el nombre del grupo:");
+        String grupo = sc.nextLine();
+        System.out.println("Ingrese su nombre de usuario:");
+        String nombre = sc.nextLine();
+
+        EntityBareJid mucJid = JidCreate.entityBareFrom(grupo + "@conference.alumchat.xyz");
+        Resourcepart nickname = Resourcepart.from(nombre);
+
+        // Get the MUC manager
+        MultiUserChatManager mucManager = MultiUserChatManager.getInstanceFor(connection);
+        MultiUserChat muc = mucManager.getMultiUserChat(mucJid);
+
+        // Create a MucEnterConfiguration
+        MucEnterConfiguration.Builder mucEnterConfigBuilder = muc.getEnterConfigurationBuilder(nickname)
+                .requestNoHistory(); // se define el no mostrar el historial
+
+        MucEnterConfiguration mucEnterConfiguration = mucEnterConfigBuilder.build();
+
+        // unirse al group chat
+        muc.join(mucEnterConfiguration);
+        muc.addMessageListener(new MessageListener() {
+            @Override
+            public void processMessage(Message message) {
+                if (message.getBody() != null) {
                     System.out.println(message.getFrom() + ": " + message.getBody());
                 }
-            });
-
-            while (true) {
-                System.out.println("Escriba su mensaje (o 'salir' para finalizar el chat de grupo):");
-                String messageText = sc.nextLine();
-                if ("salir".equalsIgnoreCase(messageText)) {
-                    muc.leave();
-                    break;
-                }
-                muc.sendMessage(messageText);
             }
-        } catch (XmppStringprepException | SmackException.NotConnectedException | InterruptedException | XMPPException.XMPPErrorException | MultiUserChatException.NotAMucServiceException e) {
-            System.out.println("Error al chatear con el grupo.");
-            e.printStackTrace();
-        }
+        });
+        do {
+            System.out.println("1. Ver chat\n 2.Salir al menu principal");
+            opcion = sc.nextInt();
+
+            System.out.println("Escriba su mensaje");
+            String mensaje = sc.nextLine();
+
+            muc.sendMessage(mensaje);
+        } while (opcion != 2);
+        muc.leave();
     }
 
 

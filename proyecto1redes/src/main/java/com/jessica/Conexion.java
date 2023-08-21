@@ -48,7 +48,7 @@ public class Conexion {
 
                     System.out
                             .println(
-                                    "Que desea hacer ahora?: \n 1.Mostrar todos los contactos\n 2.Agregar un usuario a los contactos\n 3.Mostrar detalles de contacto de un usuario\n 4.Chat con un contacto \n 5.Chat con un grupo\n 6.Definir mensaje de presencia\n 7.Notificaciones\n 8.Archivos\n 9.Cerrar sesion\n 10.Borrar Cuenta\n");
+                                    "\n Que desea hacer ahora?: \n 1.Mostrar todos los contactos\n 2.Agregar un usuario a los contactos\n 3.Mostrar detalles de contacto de un usuario\n 4.Chat con un contacto \n 5.Chat con un grupo\n 6.Definir mensaje de presencia\n 7.Notificaciones\n 8.Archivos\n 9.Cerrar sesion\n 10.Borrar Cuenta\n");
 
                     choice = sc.nextInt();
                     switch (choice) {
@@ -66,10 +66,11 @@ public class Conexion {
                             break;
                         case 4:
                             // chat con un contacto
-                            Sesion.envio(iniciado);
+                            Sesion.chatContacto(iniciado);
                             break;
                         case 5:
                             // chat con un grupo
+                            Sesion.chatGrupo(iniciado);
                             break;
                         case 6:
                             // mensaje de presencia
