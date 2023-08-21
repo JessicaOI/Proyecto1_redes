@@ -70,7 +70,7 @@ public class Conexion {
                             break;
                         case 5:
                             // chat con un grupo
-                            Sesion.chatGrupo(iniciado);
+                            // Sesion.chatGrupo(iniciado);
                             break;
                         case 6:
                             // mensaje de presencia
@@ -81,6 +81,7 @@ public class Conexion {
                             break; 
                         case 8:
                             // archivos
+                            Sesion.sendFile(iniciado);
                             break;
                         case 9:// desconectarse
                             Sesion.Deconeccion(iniciado);

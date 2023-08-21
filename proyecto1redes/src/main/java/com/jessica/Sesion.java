@@ -41,6 +41,10 @@ import org.jxmpp.jid.parts.Resourcepart;
 import org.jxmpp.stringprep.XmppStringprepException;
 import org.jivesoftware.smackx.muc.MultiUserChatException.NotAMucServiceException;
 import org.jivesoftware.smackx.muc.MultiUserChatException.MucNotJoinedException;
+import org.jivesoftware.smackx.xdata.FormField;
+import org.jivesoftware.smackx.xdata.packet.DataForm;
+
+
 
 
 public class Sesion {
@@ -326,54 +330,100 @@ public class Sesion {
         } while (opcion != 2);
 
     }
+    //Crear grupo
+    // public static void crearGrupo(AbstractXMPPConnection connection)
+    //     throws XmppStringprepException, NotAMucServiceException,
+    //         XMPPErrorException, NoResponseException, NotConnectedException, InterruptedException {
+
+    //     Scanner sc = new Scanner(System.in);
+    //     System.out.println("Ingrese el nombre del grupo que desea crear:");
+    //     String groupName = sc.nextLine();
+    //     System.out.println("Ingrese su nombre de usuario:");
+    //     String username = sc.nextLine();
+
+    //     EntityBareJid mucJid = JidCreate.entityBareFrom(groupName + "@conference.alumchat.xyz");
+    //     Resourcepart nickname = Resourcepart.from(username);
+
+    //     // Get the MUC manager
+    //     MultiUserChatManager mucManager = MultiUserChatManager.getInstanceFor(connection);
+    //     MultiUserChat muc = mucManager.getMultiUserChat(mucJid);
+
+    //     try {
+    //         muc.create(nickname);
+    //     } catch (MultiUserChatException.MucAlreadyJoinedException e) {
+    //         System.out.println("Ya te has unido a este grupo.");
+    //         return; // o manejar de alguna otra manera que desees
+    //     } catch (MultiUserChatException.MissingMucCreationAcknowledgeException e) {
+    //         System.out.println("El servidor no envió el acuse de recibo requerido después de crear el grupo.");
+    //         return; // o manejar de alguna otra manera que desees
+    //     }
+
+    //     System.out.println("Grupo creado exitosamente!");
+
+    //     while (true) {
+    //         System.out.println("Ingrese el JID del contacto que desea agregar o 'exit' para terminar:");
+    //         String contactJIDString = sc.nextLine() + "@alumchat.xyz";
+    //         if (contactJIDString == "exit") {
+    //             break;
+    //         }
+    //         EntityBareJid contactJID = JidCreate.entityBareFrom(contactJIDString);
+    //         muc.invite(contactJID, "Has sido invitado a unirte al grupo " + groupName);
+    //     }
+    // }
+
+
+
+
 
     // Chat con un grupo
-    public static void chatGrupo(AbstractXMPPConnection connection)
-        throws XmppStringprepException, NotAMucServiceException,
-            XMPPErrorException, NoResponseException, NotConnectedException, InterruptedException,
-            MucNotJoinedException {
+    // public static void chatGrupo(AbstractXMPPConnection connection)
+    //     throws XmppStringprepException, NotAMucServiceException,
+    //         XMPPErrorException, NoResponseException, NotConnectedException, InterruptedException,
+    //         MucNotJoinedException {
 
-        int opcion = 0;
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Ingrese el nombre del grupo:");
-        String grupo = sc.nextLine();
-        System.out.println("Ingrese su nombre de usuario:");
-        String nombre = sc.nextLine();
+    //     int opcion = 0;
+    //     Scanner sc = new Scanner(System.in);
+    //     System.out.println("Ingrese el nombre del grupo:");
+    //     String grupo = sc.nextLine();
+    //     System.out.println("Ingrese su nombre de usuario:");
+    //     String nombre = sc.nextLine();
 
-        EntityBareJid mucJid = JidCreate.entityBareFrom(grupo + "@conference.alumchat.xyz");
-        Resourcepart nickname = Resourcepart.from(nombre);
+    //     EntityBareJid mucJid = JidCreate.entityBareFrom(grupo + "@conference.alumchat.xyz");
+    //     Resourcepart nickname = Resourcepart.from(nombre);
 
-        // Get the MUC manager
-        MultiUserChatManager mucManager = MultiUserChatManager.getInstanceFor(connection);
-        MultiUserChat muc = mucManager.getMultiUserChat(mucJid);
+    //     // Get the MUC manager
+    //     MultiUserChatManager mucManager = MultiUserChatManager.getInstanceFor(connection);
+    //     MultiUserChat muc = mucManager.getMultiUserChat(mucJid);
 
-        // Create a MucEnterConfiguration
-        MucEnterConfiguration.Builder mucEnterConfigBuilder = muc.getEnterConfigurationBuilder(nickname)
-                .requestNoHistory(); // se define el no mostrar el historial
+    //     // Create a MucEnterConfiguration
+    //     MucEnterConfiguration.Builder mucEnterConfigBuilder = muc.getEnterConfigurationBuilder(nickname)
+    //             .requestNoHistory(); // se define el no mostrar el historial
 
-        MucEnterConfiguration mucEnterConfiguration = mucEnterConfigBuilder.build();
+    //     MucEnterConfiguration mucEnterConfiguration = mucEnterConfigBuilder.build();
 
-        // unirse al group chat
-        muc.join(mucEnterConfiguration);
-        muc.addMessageListener(new MessageListener() {
-            @Override
-            public void processMessage(Message message) {
-                if (message.getBody() != null) {
-                    System.out.println(message.getFrom() + ": " + message.getBody());
-                }
-            }
-        });
-        do {
-            System.out.println("1. Ver chat\n 2.Salir al menu principal");
-            opcion = sc.nextInt();
-
-            System.out.println("Escriba su mensaje");
-            String mensaje = sc.nextLine();
-
-            muc.sendMessage(mensaje);
-        } while (opcion != 2);
-        muc.leave();
-    }
+    //     // unirse al group chat
+    //     muc.join(mucEnterConfiguration);
+    //     muc.addMessageListener(new MessageListener() {
+    //         @Override
+    //         public void processMessage(Message message) {
+    //             if (message.getBody() != null) {
+    //                 System.out.println(message.getFrom() + ": " + message.getBody());
+    //             }
+    //         }
+    //     });
+    //     do {
+    //         System.out.println("1. Enviar mensaje\n 2.Salir al menu principal");
+    //         opcion = sc.nextInt();
+    //         sc.nextLine();  // Consumir el '\n' que queda en el buffer después de nextInt()
+        
+    //         if (opcion == 1) {
+    //             System.out.println("Escriba su mensaje");
+    //             String mensaje = sc.nextLine();
+    //             muc.sendMessage(mensaje);
+    //         }
+    //     } while (opcion != 2);
+        
+    // }
 
 
 
@@ -405,6 +455,47 @@ public class Sesion {
         }
     }
 
+    private static String uploadFileToServer(String filePath) {
+        // Here you would add the code to upload the file to the server
+        // and return a link or identifier for the uploaded file.
+        return "link_or_identifier_to_the_uploaded_file";
+    }
 
+    private static void sendNotificationToUser(AbstractXMPPConnection connection, String recipient, String fileLink) throws SmackException, IOException, XMPPException, InterruptedException {
+        org.jivesoftware.smack.chat2.ChatManager chat = org.jivesoftware.smack.chat2.ChatManager.getInstanceFor(connection);
+    
+        EntityBareJid jid = JidCreate.entityBareFrom(recipient);
+    
+        Chat chat2 = chat.chatWith(jid);
+    
+        // Construye el mensaje de notificación
+        String notificationMessage = "Has recibido un archivo. Puedes descargarlo desde aquí: " + fileLink;
+        
+        chat2.send(notificationMessage);
+    }
+    
+
+    public static void sendFile(AbstractXMPPConnection connection) throws SmackException, IOException, XMPPException, InterruptedException {
+        // Step 1: Ask the user for the file path
+        System.out.println("Por favor, introduce la ruta del archivo que deseas enviar:");
+        String filePath = System.console().readLine();
+
+        // Step 2: Upload the file to the server
+        String fileLink = uploadFileToServer(filePath);
+
+        // Step 3: Ask the user for the contact name
+        System.out.println("Por favor, introduce el nombre del contacto al que deseas enviar el archivo:");
+        String contactName = System.console().readLine();
+
+        // Append the domain to the contact name
+        String recipient = contactName + "@alumchat.xyz";
+
+        // Step 4: Send a notification to the user
+        sendNotificationToUser(connection, recipient, fileLink);
+
+        System.out.println("Archivo enviado con éxito a " + contactName);
+    }
+
+    
 
 }
