@@ -81,7 +81,6 @@ public class Conexion {
                             break; 
                         case 8:
                             // archivos
-                            Sesion.sendFile(iniciado);
                             break;
                         case 9:// desconectarse
                             Sesion.Deconeccion(iniciado);

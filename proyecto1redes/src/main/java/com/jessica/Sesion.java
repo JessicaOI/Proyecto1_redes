@@ -6,8 +6,6 @@ import java.util.Scanner;
 
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.ConnectionConfiguration;
-import org.jivesoftware.smack.MessageListener;
-import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.SmackException.NoResponseException;
 import org.jivesoftware.smack.SmackException.NotConnectedException;
@@ -27,32 +25,22 @@ import org.jivesoftware.smack.roster.RosterListener;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.iqregister.AccountManager;
-import org.jivesoftware.smackx.muc.MucEnterConfiguration;
-// import org.jivesoftware.smackx.muc.DiscussionHistory;
-import org.jivesoftware.smackx.muc.MultiUserChat;
-import org.jivesoftware.smackx.muc.MultiUserChatException;
-import org.jivesoftware.smackx.muc.MultiUserChatManager;
 import org.jxmpp.jid.BareJid;
 import org.jxmpp.jid.EntityBareJid;
 import org.jxmpp.jid.Jid;
 import org.jxmpp.jid.impl.JidCreate;
 import org.jxmpp.jid.parts.Localpart;
-import org.jxmpp.jid.parts.Resourcepart;
 import org.jxmpp.stringprep.XmppStringprepException;
-import org.jivesoftware.smackx.muc.MultiUserChatException.NotAMucServiceException;
-import org.jivesoftware.smackx.muc.MultiUserChatException.MucNotJoinedException;
-import org.jivesoftware.smackx.xdata.FormField;
-import org.jivesoftware.smackx.xdata.packet.DataForm;
 
 
 
 
 public class Sesion {
 
-    // iniciar sesion
+    // Making the log in
     public static AbstractXMPPConnection Coneccion(String user, String pass)
             throws SmackException, IOException, XMPPException, InterruptedException {
-    //conexion con el servidor
+    //connect to the server
         XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
                 .setHost("alumchat.xyz")
                 .setXmppDomain("alumchat.xyz")
@@ -62,13 +50,13 @@ public class Sesion {
                 .build();
 
         AbstractXMPPConnection connection = new XMPPTCPConnection(config);
-        connection.connect(); // Se establece la conexion con el servidor
-        connection.login(); // "Inicia sesion"
+        connection.connect(); // Establish connection with the server
+        connection.login(); // "Login"
 
         return connection;
     }
 
-    // cerrar sesion
+    // Log out function
     public static String Deconeccion(AbstractXMPPConnection connection)
             throws SmackException, IOException, XMPPException, InterruptedException {
 
@@ -78,33 +66,40 @@ public class Sesion {
 
     }
 
-    // crear un usuario nuevo
+    // Create new Username
     public static void Creation()
             throws SmackException, IOException, XMPPException, InterruptedException {
+        // Notify the user about the default server
         System.out.println("(nota: no es necesario agregar el servidor se le añadira automaticamente el de alumchat.xyz)");
+        // Prompt user for a username
         System.out.println("Ingrese el nombre de usuario que desea utilizar (ejemplo: jessica):");
         Scanner sc = new Scanner(System.in);
         String usuario = sc.nextLine();
 
+        // Prompt user for a password
         System.out.println("Ingrese su contraseña:");
         String password = sc.nextLine();
-
+        
+        // Attempt to create a connection and account on the server
         try {
+            // Set up connection configuration to the XMPP server
             XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
                     .setHost("alumchat.xyz")
                     .setXmppDomain("alumchat.xyz")
                     .setPort(5222)
                     .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
                     .build();
+             // Establish the connection using the configuration
             AbstractXMPPConnection connection = new XMPPTCPConnection(config);
             connection.connect();
-
+            // Instantiate the AccountManager to manage user account actions
             AccountManager accountManager = AccountManager.getInstance(connection);
 
-            // se hace la prueba
+            // Check if the server supports account creation (test)
             try {
                 if (accountManager.supportsAccountCreation()) {
                     accountManager.sensitiveOperationOverInsecureConnection(true);
+                    // Create an account with the provided username and password
                     accountManager.createAccount(Localpart.from(usuario), password);
                     System.out.println("\nSe ha creado su cuenta, ya puede iniciar sesion\n");
                 } else {
@@ -114,6 +109,7 @@ public class Sesion {
                 e.printStackTrace();
                 System.out.println("Error al crear la cuenta");
             }
+            // Disconnect from the server
             connection.disconnect();
 
         } catch (Exception e) {
@@ -124,9 +120,10 @@ public class Sesion {
 
     }
 
-     // eliminar cuenta
+     // Delete user
      public static void eliminar() {
 
+        // Prompt the user for their username to confirm account deletion
         System.out.println("Ingrese su usuario para confirmar la eliminacion");
         Scanner sc = new Scanner(System.in);
         String user = sc.nextLine();
@@ -134,8 +131,9 @@ public class Sesion {
         System.out.println("Ingrese su contraseña");
         String pass = sc.nextLine();
 
-        // verifica la cuenta que se eliminara
+        // Attempt to verify and delete the account on the server
         try {
+            // Set up connection configuration to the XMPP server with provided credentials
             XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
                     .setHost("alumchat.xyz")
                     .setXmppDomain("alumchat.xyz")
@@ -143,11 +141,14 @@ public class Sesion {
                     .setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
                     .setUsernameAndPassword(user, pass)
                     .build();
+            // Establish the connection using the configuration
             AbstractXMPPConnection connection = new org.jivesoftware.smack.tcp.XMPPTCPConnection(config);
             connection.connect();
             connection.login();
 
+            // Instantiate the AccountManager to manage user account actions
             AccountManager accountManager = AccountManager.getInstance(connection); // se conecta y asi sabe que cuenta eliminar
+            // Delete the logged-in account
             accountManager.deleteAccount();
             System.out.println("Cuenta eliminada\n");
 
@@ -157,42 +158,57 @@ public class Sesion {
         }
     }
 
-    // Definir presencia en el usuario
+    // Define presence in the user
     public static void Presencia(AbstractXMPPConnection connection) throws NotConnectedException, InterruptedException {
-        StanzaFactory stanzaFactory = connection.getStanzaFactory();
-        PresenceBuilder presenceBuilder = stanzaFactory.buildPresenceStanza();
-
-        System.out.println("Presencia\n 1.Available\n 2.Do not disturb\n 3.Away");
         Scanner sc = new Scanner(System.in);
-        int coose = sc.nextInt();
-        switch (coose) {
-            case 1:// available
-                Presence presence = presenceBuilder.setMode(Presence.Mode.available).build();
-                presence = stanzaFactory.buildPresenceStanza()
-                        .setPriority(10)
-                        .build();
-                connection.sendStanza(presence);
+    
+        // Ask for presence mode
+        System.out.println("Presencia\n 1.Available\n 2.Do not disturb\n 3.Away");
+        int choose = sc.nextInt();
+        sc.nextLine();  // Consume newline left-over
+    
+        PresenceBuilder presenceBuilder = connection.getStanzaFactory().buildPresenceStanza();
+        presenceBuilder.setPriority(10);  // Set priority for all
+    
+        switch (choose) {
+            case 1: // available
+                presenceBuilder.setMode(Presence.Mode.available);
                 break;
-            case 2:// do not disturb
-                presence = presenceBuilder.setMode(Presence.Mode.dnd).build();
-                presence = stanzaFactory.buildPresenceStanza()
-                        .setPriority(10)
-                        .build();
-                connection.sendStanza(presence);
+            case 2: // do not disturb
+                presenceBuilder.setMode(Presence.Mode.dnd);
                 break;
-            case 3:// away
-                presence = presenceBuilder.setMode(Presence.Mode.away).build();
-                connection.sendStanza(presence);
+            case 3: // away
+                presenceBuilder.setMode(Presence.Mode.away);
                 break;
             default:
                 System.out.println("Elija una opcion correcta");
+                return;  // Exit function if invalid choice
         }
+    
+        // Ask for status
+        System.out.println("Desea agregar un status?");
+        System.out.println("Status\n 1.si\n 2.no\n ");
+        choose = sc.nextInt();
+        sc.nextLine();  // Consume newline left-over
+    
+        if (choose == 1) {
+            System.out.println("Escriba su status");
+            String status = sc.nextLine();
+            presenceBuilder.setStatus(status);
+        } else if (choose != 2) {
+            System.out.println("Elija una opcion correcta");
+            return;  // Exit function if invalid choice
+        }
+    
+        // Send the stanza
+        Presence presence = presenceBuilder.build();
+        connection.sendStanza(presence);
+    }
+    
 
-    }    
+    //Actions
 
-    //Acciones
-
-     // ver los contactos
+     // View contacts
     public static void Contactos(AbstractXMPPConnection connection)
             throws SmackException, IOException, XMPPException, InterruptedException {
 
@@ -330,102 +346,6 @@ public class Sesion {
         } while (opcion != 2);
 
     }
-    //Crear grupo
-    // public static void crearGrupo(AbstractXMPPConnection connection)
-    //     throws XmppStringprepException, NotAMucServiceException,
-    //         XMPPErrorException, NoResponseException, NotConnectedException, InterruptedException {
-
-    //     Scanner sc = new Scanner(System.in);
-    //     System.out.println("Ingrese el nombre del grupo que desea crear:");
-    //     String groupName = sc.nextLine();
-    //     System.out.println("Ingrese su nombre de usuario:");
-    //     String username = sc.nextLine();
-
-    //     EntityBareJid mucJid = JidCreate.entityBareFrom(groupName + "@conference.alumchat.xyz");
-    //     Resourcepart nickname = Resourcepart.from(username);
-
-    //     // Get the MUC manager
-    //     MultiUserChatManager mucManager = MultiUserChatManager.getInstanceFor(connection);
-    //     MultiUserChat muc = mucManager.getMultiUserChat(mucJid);
-
-    //     try {
-    //         muc.create(nickname);
-    //     } catch (MultiUserChatException.MucAlreadyJoinedException e) {
-    //         System.out.println("Ya te has unido a este grupo.");
-    //         return; // o manejar de alguna otra manera que desees
-    //     } catch (MultiUserChatException.MissingMucCreationAcknowledgeException e) {
-    //         System.out.println("El servidor no envió el acuse de recibo requerido después de crear el grupo.");
-    //         return; // o manejar de alguna otra manera que desees
-    //     }
-
-    //     System.out.println("Grupo creado exitosamente!");
-
-    //     while (true) {
-    //         System.out.println("Ingrese el JID del contacto que desea agregar o 'exit' para terminar:");
-    //         String contactJIDString = sc.nextLine() + "@alumchat.xyz";
-    //         if (contactJIDString == "exit") {
-    //             break;
-    //         }
-    //         EntityBareJid contactJID = JidCreate.entityBareFrom(contactJIDString);
-    //         muc.invite(contactJID, "Has sido invitado a unirte al grupo " + groupName);
-    //     }
-    // }
-
-
-
-
-
-    // Chat con un grupo
-    // public static void chatGrupo(AbstractXMPPConnection connection)
-    //     throws XmppStringprepException, NotAMucServiceException,
-    //         XMPPErrorException, NoResponseException, NotConnectedException, InterruptedException,
-    //         MucNotJoinedException {
-
-    //     int opcion = 0;
-    //     Scanner sc = new Scanner(System.in);
-    //     System.out.println("Ingrese el nombre del grupo:");
-    //     String grupo = sc.nextLine();
-    //     System.out.println("Ingrese su nombre de usuario:");
-    //     String nombre = sc.nextLine();
-
-    //     EntityBareJid mucJid = JidCreate.entityBareFrom(grupo + "@conference.alumchat.xyz");
-    //     Resourcepart nickname = Resourcepart.from(nombre);
-
-    //     // Get the MUC manager
-    //     MultiUserChatManager mucManager = MultiUserChatManager.getInstanceFor(connection);
-    //     MultiUserChat muc = mucManager.getMultiUserChat(mucJid);
-
-    //     // Create a MucEnterConfiguration
-    //     MucEnterConfiguration.Builder mucEnterConfigBuilder = muc.getEnterConfigurationBuilder(nickname)
-    //             .requestNoHistory(); // se define el no mostrar el historial
-
-    //     MucEnterConfiguration mucEnterConfiguration = mucEnterConfigBuilder.build();
-
-    //     // unirse al group chat
-    //     muc.join(mucEnterConfiguration);
-    //     muc.addMessageListener(new MessageListener() {
-    //         @Override
-    //         public void processMessage(Message message) {
-    //             if (message.getBody() != null) {
-    //                 System.out.println(message.getFrom() + ": " + message.getBody());
-    //             }
-    //         }
-    //     });
-    //     do {
-    //         System.out.println("1. Enviar mensaje\n 2.Salir al menu principal");
-    //         opcion = sc.nextInt();
-    //         sc.nextLine();  // Consumir el '\n' que queda en el buffer después de nextInt()
-        
-    //         if (opcion == 1) {
-    //             System.out.println("Escriba su mensaje");
-    //             String mensaje = sc.nextLine();
-    //             muc.sendMessage(mensaje);
-    //         }
-    //     } while (opcion != 2);
-        
-    // }
-
-
 
 
     // Mostrar detalles de contacto de un usuario
@@ -454,48 +374,6 @@ public class Sesion {
             e.printStackTrace();
         }
     }
-
-    private static String uploadFileToServer(String filePath) {
-        // Here you would add the code to upload the file to the server
-        // and return a link or identifier for the uploaded file.
-        return "link_or_identifier_to_the_uploaded_file";
-    }
-
-    private static void sendNotificationToUser(AbstractXMPPConnection connection, String recipient, String fileLink) throws SmackException, IOException, XMPPException, InterruptedException {
-        org.jivesoftware.smack.chat2.ChatManager chat = org.jivesoftware.smack.chat2.ChatManager.getInstanceFor(connection);
-    
-        EntityBareJid jid = JidCreate.entityBareFrom(recipient);
-    
-        Chat chat2 = chat.chatWith(jid);
-    
-        // Construye el mensaje de notificación
-        String notificationMessage = "Has recibido un archivo. Puedes descargarlo desde aquí: " + fileLink;
-        
-        chat2.send(notificationMessage);
-    }
-    
-
-    public static void sendFile(AbstractXMPPConnection connection) throws SmackException, IOException, XMPPException, InterruptedException {
-        // Step 1: Ask the user for the file path
-        System.out.println("Por favor, introduce la ruta del archivo que deseas enviar:");
-        String filePath = System.console().readLine();
-
-        // Step 2: Upload the file to the server
-        String fileLink = uploadFileToServer(filePath);
-
-        // Step 3: Ask the user for the contact name
-        System.out.println("Por favor, introduce el nombre del contacto al que deseas enviar el archivo:");
-        String contactName = System.console().readLine();
-
-        // Append the domain to the contact name
-        String recipient = contactName + "@alumchat.xyz";
-
-        // Step 4: Send a notification to the user
-        sendNotificationToUser(connection, recipient, fileLink);
-
-        System.out.println("Archivo enviado con éxito a " + contactName);
-    }
-
     
 
 }
